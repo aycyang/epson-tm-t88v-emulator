@@ -1,0 +1,17 @@
+{
+  "include": [
+    "./src/main.ts",
+  ],
+  "exclude": [],
+  "compilerOptions": {
+    "outDir": "dist",
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": true,
+    // For HTMLCanvasElement
+    "lib": ["es2022", "dom"],
+
+    // Ignore module structure
+    "module": "Preserve"
+  }
+}
