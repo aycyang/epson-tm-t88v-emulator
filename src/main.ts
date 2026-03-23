@@ -2,32 +2,37 @@
 import dataUrlA from './assets/a.png'
 
 import { Buffer } from 'buffer'
+import { createCanvas, loadImage, Image, Canvas } from 'canvas'
+import * as canvas from 'canvas'
 import * as escpos from 'escpos-ts'
 
 class Emulator {
-  canvas: HTMLCanvasElement
-  charMap: HTMLImageElement
-  ctx: CanvasRenderingContext2D
-  strideX: number
-  strideY: number
-  cursorX: number
-  cursorY: number
+  canvas: Canvas | HTMLCanvasElement
+  private charMap: Image
+  private strideX: number
+  private strideY: number
+  private cursorX: number
+  private cursorY: number
   constructor(canvas: HTMLCanvasElement) {
-    this.canvas = canvas
-    this.ctx = canvas.getContext("2d")
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
-    this.charMap = new Image()
-    this.charMap.src = dataUrlA
+    this.canvas = canvas ?? createCanvas(512, 256)
     this.strideX = 12
     this.strideY = 24
     this.cursorX = 0
     this.cursorY = 0
   }
+  async init() {
+    this.charMap = await loadImage(dataUrlA)
+    const ctx: any = this.canvas.getContext("2d")
+    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
+  }
   read(buf: Buffer) {
+    const ctx: any = this.canvas.getContext("2d")
     const cmds = escpos.parse(buf)
     for (const cmd of cmds) {
       if (cmd instanceof escpos.InitializePrinter) {
-        console.log("init printer")
+      } else if (cmd instanceof escpos.PrintAndLineFeed) {
+        this.cursorX = 0
+        this.cursorY += this.strideY
       } else if (cmd instanceof escpos.PrintAndCarriageReturn) {
         this.cursorX = 0
         this.cursorY += this.strideY
@@ -38,7 +43,7 @@ class Emulator {
             const y = Math.floor(c / 16) - 2
             const sx = this.strideX * x
             const sy = this.strideY * y
-            this.ctx.drawImage(this.charMap,
+            ctx.drawImage(this.charMap,
               sx, sy, this.strideX, this.strideY,
               this.cursorX, this.cursorY, this.strideX, this.strideY)
             this.cursorX += this.strideX

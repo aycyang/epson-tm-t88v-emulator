@@ -8,8 +8,10 @@
     "declaration": true,
     "declarationMap": true,
     "emitDeclarationOnly": true,
-    // For HTMLCanvasElement
-    "lib": ["es2022", "dom"],
+    "lib": [
+      "es2022",
+      "dom" // for HTMLCanvasElement
+    ],
 
     // Ignore module structure
     "module": "Preserve"
