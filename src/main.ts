@@ -7,14 +7,14 @@ import * as canvas from 'canvas'
 import * as escpos from 'escpos-ts'
 
 class Emulator {
-  canvas: Canvas | HTMLCanvasElement
+  canvas: HTMLCanvasElement
   private charMap: Image
   private strideX: number
   private strideY: number
   private cursorX: number
   private cursorY: number
   constructor(canvas: HTMLCanvasElement) {
-    this.canvas = canvas ?? createCanvas(512, 256)
+    this.canvas = canvas
     this.strideX = 12
     this.strideY = 24
     this.cursorX = 0
@@ -22,11 +22,12 @@ class Emulator {
   }
   async init() {
     this.charMap = await loadImage(dataUrlA)
-    const ctx: any = this.canvas.getContext("2d")
-    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
+    const ctx = this.canvas.getContext("2d")
+    ctx.fillStyle = "white"
+    ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
   }
   read(buf: Buffer) {
-    const ctx: any = this.canvas.getContext("2d")
+    const ctx = this.canvas.getContext("2d")
     const cmds = escpos.parse(buf)
     for (const cmd of cmds) {
       if (cmd instanceof escpos.InitializePrinter) {
@@ -43,7 +44,7 @@ class Emulator {
             const y = Math.floor(c / 16) - 2
             const sx = this.strideX * x
             const sy = this.strideY * y
-            ctx.drawImage(this.charMap,
+            ctx.drawImage(this.charMap as any,
               sx, sy, this.strideX, this.strideY,
               this.cursorX, this.cursorY, this.strideX, this.strideY)
             this.cursorX += this.strideX
