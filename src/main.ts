@@ -22,10 +22,25 @@ class Emulator {
   }
   async init() {
     this.charMap = await loadImage(dataUrlA)
+    this.canvas.width = 512
+    this.canvas.height = 256
     const ctx = this.canvas.getContext("2d")
     ctx.fillStyle = "white"
     ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
   }
+  expandCanvasBy(amount: number) {
+    const tmp = createCanvas(this.canvas.width, this.canvas.height)
+    {
+      const ctx: any = tmp.getContext("2d")
+      ctx.drawImage(this.canvas, 0, 0)
+    }
+    this.canvas.height += amount
+    {
+      const ctx: any = this.canvas.getContext("2d")
+      ctx.drawImage(tmp, 0, 0)
+    }
+  }
+  // TODO make this a generator function that yields after processing each command?
   read(buf: Buffer) {
     const ctx = this.canvas.getContext("2d")
     const cmds = escpos.parse(buf)
@@ -52,6 +67,9 @@ class Emulator {
         }
       } else {
         // unhandled
+      }
+      if (this.cursorY + this.strideY > this.canvas.height) {
+        this.expandCanvasBy(128)
       }
     }
   }
