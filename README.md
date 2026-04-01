@@ -1,6 +1,10 @@
 # Epson TM-T88V Emulator
 
-### Tests
+*Note: This package is not production-ready*
+
+A software implementation of a certain thermal receipt printer. Consumes raw bytes (ESC/POS) and renders to an HTML canvas.
+
+## Tests
 
 To add a new test:
 
