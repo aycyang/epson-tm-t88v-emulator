@@ -158,6 +158,8 @@ for (const entry of fs.readdirSync(kTestDataPath, { withFileTypes: true })) {
         return ctx.getImageData(0, 0, canvas.width, canvas.height)
       })()
 
+      writeImageDataToFile(actualData, path.join(kTestDataPath, entry.name, "out.png"))
+
       for (let i = 0; i < refData.data.length; i += 4) {
         let [r, g, b, a] = refData.data.slice(i, i + 4)
         if (Math.max(r, g, b) > 127) {
@@ -178,10 +180,10 @@ for (const entry of fs.readdirSync(kTestDataPath, { withFileTypes: true })) {
       // Approximate alignment using a patch near the top left of both images
       const refPatch = crop(refData, 0, 0, 50, 50)
       const actualPatch = crop(actualData, 0, 0, 25, 25)
-      // Scale is hardcoded at 1.68 for the HP scanner I'm using.
+      // Scale is hardcoded at ~1.68 for the HP scanner I'm using.
       // The scale-space search is not robust enough as is.
       // TODO Should determine scale automatically for more flexibility.
-      const [score, offsetX, offsetY, scale] = calculateOptimalTransform(refPatch, actualPatch, 7, 7, 1.68, 1.69, 0.1)
+      const [score, offsetX, offsetY, scale] = calculateOptimalTransform(refPatch, actualPatch, 7, 7, 1.663, 2, 1)
 
       const diffData = diffImageData(refData, actualData, offsetX, offsetY, scale)
       writeImageDataToFile(diffData, path.join(kTestDataPath, entry.name, "diff.png"))
