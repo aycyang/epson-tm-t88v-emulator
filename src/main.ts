@@ -18,6 +18,7 @@ class Emulator {
   private scaleX: number
   private scaleY: number
   private lineHeight: number
+  private underlineThickness: number
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas
     this.charWidth = 12
@@ -29,6 +30,7 @@ class Emulator {
     this.scaleX = 1
     this.scaleY = 1
     this.lineHeight = this.charHeight
+    this.underlineThickness = 0
   }
   async init() {
     this.charMap = await loadImage(dataUrlA)
@@ -64,11 +66,14 @@ class Emulator {
       const ctx = this.canvas.getContext("2d")
       ctx.imageSmoothingEnabled = false
       if (cmd instanceof escpos.InitializePrinter) {
+        this.underlineThickness = 0
       } else if (cmd instanceof escpos.SelectCharacterSize) {
         const y = cmd.n & 0x0f
         const x = (cmd.n >> 4) & 0x0f
         this.scaleX = x + 1
         this.scaleY = y + 1
+      } else if (cmd instanceof escpos.SetUnderlineMode) {
+        this.underlineThickness = cmd.n
       } else if (cmd instanceof escpos.SetLineSpacing) {
         this.strideY = 0.5 * cmd.n
       } else if (cmd instanceof escpos.PrintAndLineFeed) {
@@ -84,11 +89,17 @@ class Emulator {
             const y = Math.floor(c / 16) - 2
             const sx = this.charWidth * x
             const sy = this.charHeight * y
+            const dx = Math.round(this.cursorX)
+            const dy = Math.round(this.cursorY)
             ctx.drawImage(this.charMap as any,
               sx, sy,
               this.charWidth, this.charHeight,
-              Math.round(this.cursorX), Math.round(this.cursorY),
+              dx, dy,
               this.scaleX * this.charWidth, this.scaleY * this.charHeight)
+            if (this.underlineThickness > 0) {
+              ctx.fillStyle = "black"
+              ctx.fillRect(dx, dy + this.charHeight + 2 - this.underlineThickness, this.charWidth, this.underlineThickness)
+            }
             this.cursorX += this.scaleX * this.strideX
             if (this.cursorX + this.scaleX * this.strideX >= 512) {
               this.cursorX = 0
